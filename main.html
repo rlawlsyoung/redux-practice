@@ -55,11 +55,14 @@
         <li>
           <a onclick="
           event.preventDefault();
-          
+          store.dispatch({type:'CHANGE_MODE', mode:'create'})
           " href="/create">create</a>
         </li>
         <li>
-        <button type="button">delete</button>
+        <button type="button"
+        onclick="
+        store.dispatch({type:'DELETE'})
+        ">delete</button>
         </li>
       </ul>
     `
@@ -97,25 +100,28 @@
       } else if (state.mode === 'read') {
         let i = 0;
         let aTitle, aDesc;
-        if (!state.selected_id) {
-          aTitle = ""
-          aDesc = "select article!"
-        } else {
-          while (i < state.contents.length) {
-            if (state.contents[i].id === state.selected_id) {
-              aTitle = state.contents[i].title;
-              aDesc = state.contents[i].desc;
-              break;
-            }
-            i += 1;
+
+        while (i < state.contents.length) {
+          if (state.contents[i].id === state.selected_id) {
+            aTitle = state.contents[i].title;
+            aDesc = state.contents[i].desc;
+            break;
           }
+          i += 1;
         }
+
         document.querySelector('#content').innerHTML = `
         <article>
          <h2>${aTitle}</h2>
          ${aDesc}
        </article>
     `
+      } else if (state.mode === 'welcome') {
+        document.querySelector('#content').innerHTML = `
+      <article>
+        <h2>Welcome</h2>
+        Hi, Redux!
+      </article>`
       }
     }
 
@@ -133,7 +139,7 @@
         }
       }
       if (action.type === 'SELECT') {
-        newState = Object.assign({}, state, { selected_id: action.id })
+        newState = Object.assign({}, state, { selected_id: action.id, mode: 'read' })
       } else if (action.type === 'CREATE') {
         let newMaxId = state.max_id + 1;
         let newContents = [...state.contents];
@@ -143,7 +149,26 @@
           contents: newContents,
           mode: 'read'
         })
+      } else if (action.type === 'DELETE') {
+        let newContents = [];
+        let i = 0;
+        while (i < state.contents.length) {
+          if (state.selected_id !== state.contents[i].id) {
+            newContents.push(
+              state.contents[i]
+            )
+          }
+          i += 1;
+        }
+        newState = Object.assign({}, state, {
+          contents: newContents,
+          mode: 'welcome'
+        })
+        console.log(state)
+      } else if (action.type === 'CHANGE_MODE') {
+        newState = Object.assign({}, state, { mode: action.mode })
       }
+
       return newState;
     }
     let store = Redux.createStore(reducer);
